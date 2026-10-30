@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Key-Value Store | 45-Minute Interview Mind Map</title>
+  <style>
+    :root{--paper:#fcfaf8;--ink:#293d35;--muted:#5e6f66;--pink:#f9e6ed;--pink-border:#dbb2c2;--pink-ink:#853b5b;--green:#e7f2e9;--green-border:#aecdb8;--green-ink:#2e6448;--line:#bbc9be}
+    *{box-sizing:border-box}
+    body{margin:0;padding:30px 24px;background:var(--paper);color:var(--ink);font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+    main{max-width:1480px;margin:auto}
+    .root{position:relative;max-width:740px;margin:auto;padding:22px 28px;text-align:center;border:1px solid var(--pink-border);border-radius:22px;background:linear-gradient(115deg,var(--pink),#f9f5ef 55%,var(--green))}
+    .eyebrow{margin:0;color:var(--pink-ink);font-size:.72rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+    h1{margin:7px 0 10px;font-size:clamp(1.8rem,3.8vw,2.7rem);line-height:1.15;letter-spacing:-.04em}
+    .root p{margin:8px 0}.route{color:var(--green-ink);font-size:.85rem;font-weight:700}.scope{font-size:.81rem}.source{font-size:.7rem;color:var(--muted)}
+    a{color:inherit;text-underline-offset:3px}a:focus-visible{outline:3px solid var(--pink-ink);outline-offset:3px}
+    .root::after{content:"";position:absolute;top:100%;left:50%;height:28px;border-left:2px solid var(--line)}
+    .branches{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px;list-style:none;padding:0;margin:28px 0 0}
+    .branches::before{content:"";position:absolute;top:0;left:calc((100% - 66px)/8);right:calc((100% - 66px)/8);border-top:2px solid var(--line)}
+    .branch{position:relative;min-width:0;padding-top:22px;--tone:var(--pink);--border:var(--pink-border);--accent:var(--pink-ink)}
+    .branch:nth-child(even){--tone:var(--green);--border:var(--green-border);--accent:var(--green-ink)}
+    .branch::before{content:"";position:absolute;top:0;left:50%;height:22px;border-left:2px solid var(--line)}
+    h2{margin:0;padding:14px;border:1px solid var(--border);border-radius:13px;background:var(--tone);color:var(--accent);font-size:1.1rem;line-height:1.35}
+    h2 span{display:block;font-size:.73rem;font-weight:550;margin-top:5px}
+    .leaves{list-style:none;padding:14px 0 0 13px;margin:0 0 0 10px;border-left:2px solid var(--border)}
+    .leaf{position:relative;margin:0 0 13px}.leaf::before{content:"";position:absolute;top:22px;left:-15px;width:15px;border-top:2px solid var(--border)}
+    article{position:relative;padding:14px;border:1px solid var(--border);border-radius:12px;background:white;overflow-wrap:anywhere}
+    h3{margin:0 0 8px;color:var(--accent);font-size:.95rem;line-height:1.35}
+    article p{margin:7px 0;font-size:.81rem}article ul{padding-left:17px;margin:7px 0;font-size:.81rem}article li{margin:5px 0}
+    .path{padding:9px;border-radius:7px;background:var(--tone);color:var(--accent);font-weight:650;font-size:.77rem}
+    .trap{padding-top:8px;border-top:1px dashed var(--border);color:var(--muted);font-size:.74rem}
+    .say{border-left:3px solid var(--border);padding-left:9px;color:var(--accent)}
+    code{background:var(--tone);padding:1px 3px;border-radius:3px;font:.9em ui-monospace,Consolas,monospace}
+    figure{margin:12px 0}figcaption{margin-top:5px;text-align:center;color:var(--muted);font-size:.69rem}
+    .kv-pair{display:grid;grid-template-columns:1fr 1.3fr;border:1px solid var(--pink-border);border-radius:8px;overflow:hidden;font-size:.73rem;text-align:center}.kv-pair span{padding:9px 5px;background:var(--pink)}.kv-pair span+span{background:var(--green);border-left:1px solid var(--green-border)}.kv-pair small{display:block;color:var(--muted);font-size:.63rem}
+    .storage-flow{display:flex;align-items:center;gap:4px;text-align:center}.storage-box{flex:1;min-width:0;padding:10px 3px;border:1px solid var(--green-border);border-radius:8px;background:var(--green);color:var(--green-ink);font-size:.7rem;font-weight:700}.storage-box small{display:block;font-size:.6rem;font-weight:500}.storage-box.disk{background:var(--pink);border-color:var(--pink-border);color:var(--pink-ink);border-radius:50% / 12%}.flow-arrow{color:var(--muted);font-size:.9rem}
+    .diagram{display:block;width:100%;height:auto;max-width:280px;margin:auto}.diagram text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:12px;fill:var(--ink)}.diagram .label{font-size:10px;fill:var(--muted)}.diagram .pink{fill:var(--pink);stroke:var(--pink-ink);stroke-width:1.5}.diagram .green{fill:var(--green);stroke:var(--green-ink);stroke-width:1.5}.diagram .wire{fill:none;stroke:var(--green-ink);stroke-width:1.5}.diagram .ring{fill:none;stroke:var(--green-border);stroke-width:9}.diagram .direction{fill:none;stroke:var(--pink-ink);stroke-width:2}.diagram .arrow-tip{fill:var(--green-ink)}.diagram .ring-tip{fill:var(--pink-ink)}
+    .votes{display:flex;justify-content:center;gap:12px}.vote{display:flex;align-items:center;justify-content:center;flex-direction:column;width:57px;height:57px;border-radius:50%;border:2px solid var(--green-ink);background:var(--green);color:var(--green-ink);font-size:.8rem;font-weight:750}.vote small{font-size:.6rem;font-weight:500}.vote.pending{border:2px dashed var(--pink-ink);background:var(--pink);color:var(--pink-ink)}
+    .extras{max-width:1000px;margin:0 auto 30px;padding:22px;border:1px solid var(--green-border);border-radius:18px;background:white;--tone:var(--green);--border:var(--green-border);--accent:var(--green-ink)}.extras h2{padding:0;border:0;background:none;font-size:1.3rem}.section-note{font-size:.78rem;color:var(--muted);margin:7px 0 16px}.dialogue{margin:0;display:grid;gap:10px}.turn{max-width:90%;padding:11px 15px;border-radius:13px;border:1px solid var(--pink-border);background:var(--pink)}.turn dt{font-size:.69rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--pink-ink)}.turn dd{margin:4px 0 0;font-size:.84rem}.turn.you{margin-left:auto;border-color:var(--green-border);background:var(--green)}.turn.you dt{color:var(--green-ink)}.faq-panel{margin-top:30px;margin-bottom:0}.faq-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;list-style:none;padding:0;margin:16px 0 0;counter-reset:faq}.faq-grid>li{padding:14px;border:1px solid var(--green-border);border-radius:11px;counter-increment:faq}.faq-grid>li:nth-child(even){border-color:var(--pink-border);background:#fffafb}.faq-grid h3{margin:0 0 7px;font-size:.88rem;color:var(--green-ink)}.faq-grid h3::before{content:counter(faq) ". ";color:var(--pink-ink)}.faq-grid p{margin:0;font-size:.81rem}
+    .concept-table{width:100%;border-collapse:collapse;font-size:.84rem;margin:16px 0}.concept-table th,.concept-table td{padding:11px 12px;border-bottom:1px solid var(--green-border);text-align:left;vertical-align:top}.concept-table thead th{background:var(--green);color:var(--green-ink);font-size:.77rem}.concept-table tbody th{width:26%;color:var(--pink-ink);font-weight:750}.concept-table tbody tr:nth-child(even){background:#fffafb}.table-scroll{overflow-x:auto}.overview-tip{padding:12px;border-radius:9px;background:var(--pink);font-size:.84rem}.overview-timing{font-size:.8rem;color:var(--green-ink)}@media print{.concept-table{font-size:9pt}.concept-table tr{break-inside:avoid}.concept-table thead{display:table-header-group}}
+    @media(max-width:600px){.extras{padding:16px}.turn{max-width:100%}.faq-grid{grid-template-columns:1fr}}
+    @media print{.extras{max-width:none;padding:12px}.turn,.faq-grid>li{break-inside:avoid}.turn dd,.faq-grid p{font-size:9pt}.extras h2{break-after:avoid}.faq-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media print{figure{break-inside:avoid}.diagram{max-width:225px}}
+    @media(max-width:1100px){.branches{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}.branches::before,.branch::before,.root::after{display:none}.branch{padding-top:0}}
+    @media(max-width:600px){body{padding:18px 12px}.root{padding:18px}.branches{grid-template-columns:1fr;margin-top:22px}article p,article ul{font-size:.88rem}}
+    @media print{body{padding:0;background:white}.root{padding:12px;max-width:none}h1{font-size:23pt}.branches{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.branches::before,.branch::before,.root::after{display:none}.branch{padding-top:0}h2{break-after:avoid;padding:10px}.leaf,.root{break-inside:avoid}article{padding:10px}article p,article ul{font-size:9pt}.trap{font-size:8pt}a{text-decoration:none}}
+  </style>
+</head>
+<body>
+<main aria-labelledby="map-title">
+  <section class="extras" aria-labelledby="concepts-title">
+    <h2 id="concepts-title">What to explain in the interview</h2>
+    <p class="section-note">Discuss these in order. Explain why you chose each mechanism, not just its definition.</p>
+    <div class="table-scroll">
+      <table class="concept-table" aria-labelledby="concepts-title">
+        <thead><tr><th scope="col">Concept</th><th scope="col">What to discuss</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">1. Requirements</th><td>Cache or persistent database? GET/PUT/DELETE? Value sizes, traffic, latency, durability, and consistency expectations.</td></tr>
+          <tr><th scope="row">2. APIs and scale</th><td>Define request/response behavior. Estimate storage, read/write QPS, and replication overhead.</td></tr>
+          <tr><th scope="row">3. Single-node storage</th><td>How writes survive crashes: <strong>WAL &rarr; memtable &rarr; SSTables</strong>. Briefly mention indexes, Bloom filters, and compaction.</td></tr>
+          <tr><th scope="row">4. Partitioning</th><td>How a key maps to a server: consistent hashing or logical partitions. Discuss rebalancing and hot keys.</td></tr>
+          <tr><th scope="row">5. Replication</th><td>Where copies live, how requests reach them, and what failures they can survive. <strong>Partitioning splits; replication copies.</strong></td></tr>
+          <tr><th scope="row">6. Consistency</th><td>When a write succeeds and what a read can return. Choose leader-based consensus or a leaderless approach deliberately. For leaderless quorums, explain N/R/W, and why overlap alone is not linearizability.</td></tr>
+          <tr><th scope="row">7. Concurrent writes</th><td>How you detect and resolve conflicting updates: version vectors, last-write-wins, or application-specific merging.</td></tr>
+          <tr><th scope="row">8. Failure and recovery</th><td>Node failures, network partitions, uncertain write outcomes, retries, replica repair, and safe ownership changes.</td></tr>
+          <tr><th scope="row">9. Operational trade-offs</th><td>Hotspots, deletion/TTL, monitoring, security, and backups. Cover briefly unless asked to deepen.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="overview-tip"><strong>The most important demonstration:</strong> trace one write, one read, and one failure. Explain what happens on disk, across replicas, and what the client sees.</p>
+    <p class="overview-timing"><strong>45 minutes:</strong> 5 clarifying + 10 architecture + 20 deep dives + 10 failures and trade-offs. Aim for a coherent design, not every advanced mechanism.</p>
+  </section>
+  <section class="extras" aria-labelledby="conversation-title">
+    <h2 id="conversation-title">A quick interview conversation</h2>
+    <p class="section-note">Practice script, not a video transcript. Use this to explain your choices; adapt the assumptions to the interviewer.</p>
+    <dl class="dialogue">
+      <div class="turn"><dt>Interviewer</dt><dd>Design a key-value store.</dd></div>
+      <div class="turn you"><dt>You</dt><dd>Should it be a cache or a durable database? Do we need strong consistency? What traffic and value sizes should I plan for?</dd></div>
+      <div class="turn"><dt>Interviewer</dt><dd>Durable, distributed, small values. Eventual consistency is acceptable. Choose reasonable scale assumptions.</dd></div>
+      <div class="turn you"><dt>You</dt><dd>I'll assume 100 million entries averaging 1 KB and 100K requests/second, mostly reads. I'll support GET, PUT, and DELETE, with no cross-key transactions initially.</dd></div>
+      <div class="turn"><dt>Interviewer</dt><dd>What is your high-level architecture?</dd></div>
+      <div class="turn you"><dt>You</dt><dd>A coordinator routes each key using consistent hashing. Each key has three replicas on distinct machines. Locally, I'll use a WAL, memtable, and SSTables.</dd></div>
+      <div class="turn"><dt>Interviewer</dt><dd>When do you acknowledge a write? What does a read return?</dd></div>
+      <div class="turn you"><dt>You</dt><dd>With N=3, I'll require W=2 durable acknowledgments and R=2 read responses. I'll compare versions and handle conflicts. The sets overlap, but that alone does not guarantee linearizability.</dd></div>
+      <div class="turn"><dt>Interviewer</dt><dd>What if replicas disagree or a machine fails?</dd></div>
+      <div class="turn you"><dt>You</dt><dd>Version vectors detect concurrent updates; the application needs a merge policy. Read repair and anti-entropy fix divergence. Hinted handoff can forward temporarily held writes after recovery.</dd></div>
+      <div class="turn"><dt>Interviewer</dt><dd>What is the main trade-off? What if I need strong consistency?</dd></div>
+      <div class="turn you"><dt>You</dt><dd>This design accepts temporary divergence and pays for repair. For linearizable operations, I'd switch to consensus-backed leaders and safe reads, accepting unavailable operations when a majority cannot be reached.</dd></div>
+    </dl>
+  </section>
+  <div class="root">
+    <p class="eyebrow">SDE-2 / 45-minute interview</p>
+    <h1 id="map-title">Design a key-value store</h1>
+    <p class="route">Clarify &gt; Draw &gt; Deep dive &gt; Defend</p>
+    <p class="scope"><strong>Baseline:</strong> persistent, leaderless, Dynamo-style store. Eventual convergence with an explicit conflict policy.</p>
+    <p class="source">Independent revision aid, not a verified transcript summary. <a href="https://www.youtube.com/watch?v=Uqk7IQFS-Eo" target="_blank" rel="noopener noreferrer">Video</a>. Timings are a guide; follow interviewer prompts.</p>
+  </div>
+  <ul class="branches" aria-label="45-minute interview plan">
+    <li class="branch" data-minutes="5">
+      <h2>01 / Clarify<span>0-5 min / agree on the problem</span></h2>
+      <ul class="leaves">
+        <li class="leaf"><article>
+          <h3>Requirements</h3>
+          <figure aria-label="Example key-value entry">
+            <div class="kv-pair"><span><small>KEY</small>user:123</span><span><small>VALUE</small>{name: "Riya"}</span></div>
+            <figcaption>Know the key &rarr; fetch its value.</figcaption>
+          </figure>
+          <ul>
+            <li>Cache or durable database?</li>
+            <li>GET, PUT, DELETE; small values.</li>
+            <li>Read/write QPS, p99 latency, durability, availability.</li>
+            <li>Eventual or strong consistency?</li>
+          </ul>
+          <p class="trap">Exclude joins, range queries, and cross-key transactions initially.</p>
+        </article></li>
+        <li class="leaf"><article>
+          <h3>Size it briefly</h3>
+          <p><strong>100M x 1 KB ~ 100 GB raw.</strong><br>Three copies ~ 300 GB + overhead.</p>
+          <p>100K QPS, 90% reads:<br><strong>90K reads/s + 10K writes/s.</strong></p>
+          <p class="trap">Include logs, indexes, growth, and failure headroom.</p>
+        </article></li>
+        <li class="leaf"><article>
+          <h3>API contract</h3>
+          <p><code>GET(key)</code> &gt; value + version<br><code>PUT(key, value, context)</code><br><code>DELETE(key)</code></p>
+          <p>Define NOT_FOUND, validation errors, and unavailable/timeout responses.</p>
+          <p class="trap"><strong>Timeout != failed write.</strong> Protect retries with request IDs or version checks where needed.</p>
+        </article></li>
+      </ul>
+    </li>
+    <li class="branch" data-minutes="10">
+      <h2>02 / Draw<span>5-15 min / explain the architecture</span></h2>
+      <ul class="leaves">
+        <li class="leaf"><article>
+          <h3>One-node storage</h3>
+          <figure aria-label="Local writes enter the write-ahead log, then the memtable, then flush to disk">
+            <div class="storage-flow"><div class="storage-box">WAL<small>recovery log</small></div><span class="flow-arrow" aria-hidden="true">&rarr;</span><div class="storage-box">Memtable<small>RAM</small></div><span class="flow-arrow" aria-hidden="true">&rarr;</span><div class="storage-box disk">SSTables<small>disk</small></div></div>
+            <figcaption>Write &rarr; log &rarr; memory &rarr; flush.</figcaption>
+          </figure>
+          <p>WAL recovers writes; memtable holds recent updates; SSTables persist sorted records.</p>
+          <p>Reads use indexes, Bloom filters, and cache. Compaction merges files.</p>
+          <p class="trap">A buffered log append is not necessarily durable: define the fsync policy.</p>
+        </article></li>
+        <li class="leaf"><article>
+          <h3>Partition the keys</h3>
+          <figure>
+            <svg class="diagram" viewBox="0 0 260 220" role="img" aria-labelledby="ring-title ring-desc">
+              <title id="ring-title">Consistent-hashing ring</title>
+              <desc id="ring-desc">Nodes A, B, C, and D sit clockwise around a ring. The key hashes between A and B. Moving clockwise selects B as its owner.</desc>
+              <defs><marker id="ring-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path class="ring-tip" d="M 0 0 L 10 5 L 0 10 Z"/></marker></defs>
+              <circle class="ring" cx="130" cy="106" r="70"/>
+              <path class="direction" d="M 153 40 A 70 70 0 0 1 199 92" marker-end="url(#ring-arrow)"/>
+              <circle class="pink" cx="130" cy="36" r="17"/><text x="130" y="40" text-anchor="middle">A</text>
+              <circle class="green" cx="200" cy="106" r="20"/><text x="200" y="110" text-anchor="middle">B</text>
+              <circle class="pink" cx="130" cy="176" r="17"/><text x="130" y="180" text-anchor="middle">C</text>
+              <circle class="pink" cx="60" cy="106" r="17"/><text x="60" y="110" text-anchor="middle">D</text>
+              <circle cx="179.5" cy="56.5" r="5" fill="#853b5b"/>
+              <path class="direction" d="M 184 52 L 206 30"/>
+              <text class="label" x="202" y="21" text-anchor="middle">hash(key)</text>
+              <text x="130" y="100" text-anchor="middle">Clockwise</text>
+              <text x="130" y="118" text-anchor="middle">owner = B</text>
+              <text class="label" x="130" y="211" text-anchor="middle">Illustration: one token per physical node</text>
+            </svg>
+            <figcaption>Pick the first node clockwise from the key.</figcaption>
+          </figure>
+          <p>Consistent hashing limits movement on membership changes. Virtual nodes improve balance.</p>
+          <p class="trap"><strong>Hot keys remain hot.</strong> Even key counts do not mean even traffic.</p>
+        </article></li>
+        <li class="leaf"><article>
+          <h3>Replicate &amp; route</h3>
+          <figure>
+            <svg class="diagram" viewBox="0 0 260 178" role="img" aria-labelledby="replica-title replica-desc">
+              <title id="replica-title">Request routing and three replicas</title>
+              <desc id="replica-desc">The client sends a request to a coordinator. The coordinator fans out to replicas A, B, and C on separate machines. Each stores the same key.</desc>
+              <defs><marker id="replica-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path class="arrow-tip" d="M 0 0 L 10 5 L 0 10 Z"/></marker></defs>
+              <rect class="pink" x="91" y="5" width="78" height="28" rx="8"/><text x="130" y="23" text-anchor="middle">Client</text>
+              <path class="wire" d="M 130 33 V 50" marker-end="url(#replica-arrow)"/>
+              <rect class="green" x="72" y="53" width="116" height="32" rx="8"/><text x="130" y="74" text-anchor="middle">Coordinator</text>
+              <path class="wire" d="M 130 85 V 101 H 42 V 117" marker-end="url(#replica-arrow)"/>
+              <path class="wire" d="M 130 101 V 117" marker-end="url(#replica-arrow)"/>
+              <path class="wire" d="M 130 101 H 218 V 117" marker-end="url(#replica-arrow)"/>
+              <rect class="pink" x="6" y="121" width="72" height="46" rx="9"/><text x="42" y="140" text-anchor="middle">Replica A</text><text class="label" x="42" y="155" text-anchor="middle">key: value</text>
+              <rect class="green" x="94" y="121" width="72" height="46" rx="9"/><text x="130" y="140" text-anchor="middle">Replica B</text><text class="label" x="130" y="155" text-anchor="middle">key: value</text>
+              <rect class="pink" x="182" y="121" width="72" height="46" rx="9"/><text x="218" y="140" text-anchor="middle">Replica C</text><text class="label" x="218" y="155" text-anchor="middle">key: value</text>
+            </svg>
+            <figcaption>One key, three copies; not three different keys.</figcaption>
+          </figure>
+          <p><strong>N = 3</strong> replicas on distinct machines/failure domains. Coordinator gathers responses.</p>
+          <p class="trap">Partitioning splits; replication copies. Coordinator != permanent leader.</p>
+        </article></li>
+      </ul>
+    </li>
+    <li class="branch" data-minutes="20">
+      <h2>03 / Deep dive<span>15-35 min / focus on 1-2 hard parts</span></h2>
+      <ul class="leaves">
+        <li class="leaf"><article>
+          <h3>Quorums &amp; consistency</h3>
+          <p><strong>R</strong> = read responses.<br><strong>W</strong> = durable write acknowledgments.</p>
+          <p class="path">R + W &gt; N: fixed-set overlap</p>
+          <figure aria-label="Write quorum example: A and B acknowledged, C is pending, so two of three acknowledgments have arrived">
+            <div class="votes"><div class="vote">A<small>ACK</small></div><div class="vote">B<small>ACK</small></div><div class="vote pending">C<small>pending</small></div></div>
+            <figcaption>W = 2: reply after A + B acknowledge.</figcaption>
+          </figure>
+          <p>N=3, R=2, W=2: each operation tolerates one unavailable replica if the other two respond.</p>
+          <p class="trap"><strong>Overlap != linearizability.</strong> Concurrency, ordering, and membership still need a protocol. Sloppy quorums may break overlap.</p>
+        </article></li>
+        <li class="leaf"><article>
+          <h3>Trace one write + read</h3>
+          <p class="path">Write: route &gt; version &gt; replicas persist &gt; W acks &gt; reply</p>
+          <p class="path">Read: collect R versions &gt; compare &gt; resolve / return siblings &gt; repair</p>
+          <p class="trap">W acknowledgments do not imply all N replicas have the write.</p>
+        </article></li>
+        <li class="leaf"><article>
+          <h3>Concurrent writes</h3>
+          <ul>
+            <li><strong>Last-write-wins:</strong> simple; may discard updates; clock skew matters.</li>
+            <li><strong>Version vectors:</strong> detect causal order or concurrency.</li>
+            <li><strong>Resolution:</strong> application merge, sibling versions, or suitable CRDT.</li>
+          </ul>
+          <p class="trap">Detecting a conflict does not resolve it.</p>
+        </article></li>
+      </ul>
+    </li>
+    <li class="branch" data-minutes="10">
+      <h2>04 / Defend<span>35-45 min / failures &amp; trade-offs</span></h2>
+      <ul class="leaves">
+        <li class="leaf"><article>
+          <h3>Failure &amp; repair</h3>
+          <ul>
+            <li><strong>Heartbeats + gossip:</strong> suspect failure, not proof.</li>
+            <li><strong>Hinted handoff:</strong> forward temporarily held writes.</li>
+            <li><strong>Read repair:</strong> fix divergence found on reads.</li>
+            <li><strong>Anti-entropy:</strong> background repair; Merkle hashes locate differences.</li>
+          </ul>
+        </article></li>
+        <li class="leaf"><article>
+          <h3>Essential follow-ups</h3>
+          <ul>
+            <li><strong>Delete / TTL:</strong> retain tombstones safely; avoid resurrection.</li>
+            <li><strong>Rebalance:</strong> snapshot &gt; catch up &gt; safe ownership switch.</li>
+            <li><strong>Monitor:</strong> p99 latency, quorum errors, disk, repair lag.</li>
+            <li>Authentication, quotas, backups.</li>
+          </ul>
+          <p class="trap">Replication is not a backup. Expand these only if asked.</p>
+        </article></li>
+        <li class="leaf"><article>
+          <h3>Close with the trade-off</h3>
+          <p>During a partition, linearizable consistency and CAP availability cannot both be guaranteed.</p>
+          <p><strong>Need strong consistency?</strong> Switch explicitly to consensus-backed leaders, majority commits, and safe linearizable reads; no majority can mean unavailable operations.</p>
+          <p class="say">"We scale through partitioning and survive failures through replication, at the cost of repair and conflict-handling complexity."</p>
+        </article></li>
+      </ul>
+    </li>
+  </ul>
+  <section class="extras faq-panel" aria-labelledby="faq-title">
+    <h2 id="faq-title">10 quick FAQs</h2>
+    <p class="section-note">Short answers to common interview follow-ups.</p>
+    <ol class="faq-grid">
+      <li><h3>Why choose a key-value store instead of SQL?</h3><p>It fits known-key lookups and updates with simple access patterns. If joins, flexible filtering, or relational transactions dominate, a relational database may be the better choice.</p></li>
+      <li><h3>Why not keep everything in a hash map?</h3><p>A hash map alone does not provide crash recovery, disk storage, replication, or distributed routing. It is a useful component, not a complete durable database.</p></li>
+      <li><h3>How do partitioning and replication differ?</h3><p>Partitioning splits different keys across machines to scale capacity. Replication copies the same keys onto independent machines to improve resilience.</p></li>
+      <li><h3>Does consistent hashing solve hot keys?</h3><p>No. It distributes key ownership, not request popularity. Cache hot reads with explicit staleness rules; splitting a hot logical key requires application-aware semantics.</p></li>
+      <li><h3>Does R + W &gt; N guarantee strong consistency?</h3><p>No. It guarantees read/write set intersection for a fixed replica set. Linearizability also requires appropriate ordering, concurrency handling, and read/write protocols.</p></li>
+      <li><h3>What does a timed-out write mean?</h3><p>The outcome is unknown: some replicas may already have stored it. Use deduplication or conditional version checks where needed so retries do not introduce stale or duplicate effects.</p></li>
+      <li><h3>Do version vectors resolve conflicts?</h3><p>No. They detect causal order and concurrent versions. Application merge rules, sibling reconciliation, or a suitable CRDT determine the resulting value.</p></li>
+      <li><h3>How are hinted handoff and anti-entropy different?</h3><p>Hinted handoff forwards known writes held for an unavailable replica. Anti-entropy compares replica state to discover and repair divergence, including data that is rarely read.</p></li>
+      <li><h3>Why use tombstones instead of deleting immediately?</h3><p>Older values may remain in files or on stale replicas. A versioned deletion marker suppresses them; removing it too early can resurrect deleted data.</p></li>
+      <li><h3>Are three replicas enough to replace backups?</h3><p>No. Accidental deletion and bad writes can replicate too. Keep separate backups and test restores; place replicas across independent failure domains.</p></li>
+    </ol>
+  </section>
+</main>
+</body>
+</html>
