@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Distributed Unique ID Generator | System Design Memory Map</title>
+  <style>
+    :root {
+      --bg: #f5f6f3;
+      --ink: #20332b;
+      --muted: #52635a;
+      --pink: #f7e9ef;
+      --pink-line: #d3a6b8;
+      --rose: #792d4e;
+      --green: #e9f2ec;
+      --green-line: #a4c1ae;
+      --forest: #20533c;
+      --line: #d9e2dc;
+      --white: #fff;
+      --space: 32px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.75 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { max-width: 1180px; margin: auto; padding: 40px 28px 56px; }
+    a { color: var(--forest); text-underline-offset: 4px; }
+    a:focus-visible, summary:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--rose); outline-offset: 4px; }
+    h1 { margin: 12px 0 20px; font-size: clamp(2rem, 3.8vw, 2.8rem); line-height: 1.15; letter-spacing: -.035em; }
+    h2 { margin: 0 0 24px; color: var(--forest); font-size: 1.65rem; line-height: 1.3; letter-spacing: -.02em; }
+    h3 { margin: 30px 0 14px; color: var(--rose); font-size: 1.18rem; line-height: 1.4; }
+    p { margin: 14px 0; }
+    strong { font-weight: 750; }
+    .eyebrow { margin-bottom: 12px; color: var(--rose); font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .muted { color: var(--muted); font-size: .94rem; }
+    .hero, .panel, #memory-map { width: 100%; padding: var(--space); border: 1px solid var(--line); border-radius: 12px; background: var(--white); }
+    .hero { border-top: 5px solid var(--rose); text-align: left; }
+    .hero p { margin: 16px 0; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 20px 0; color: var(--forest); font-size: .9rem; font-weight: 650; }
+    .chip + .chip::before { content: "/"; margin-right: 20px; color: var(--pink-line); }
+    .jump { display: flex; flex-wrap: wrap; gap: 10px 24px; margin: 24px 0; padding: 0 4px; }
+    .jump a { font-size: .92rem; font-weight: 650; text-decoration-thickness: 1px; }
+    .panel, #memory-map { margin: 28px 0; }
+    .intro { max-width: none; }
+    .quote { padding: 18px 22px; border-left: 4px solid var(--rose); background: var(--pink); color: var(--rose); border-radius: 0 8px 8px 0; font-size: 1rem; font-weight: 550; }
+    .note { margin: 24px 0 0; padding: 18px 22px; border-left: 4px solid var(--forest); background: var(--green); border-radius: 0 8px 8px 0; font-size: .96rem; }
+    .note strong { color: var(--forest); }
+    .table-wrap { width: 100%; margin: 18px 0 28px; overflow-x: auto; }
+    table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 1rem; line-height: 1.7; }
+    th, td { padding: 16px 18px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    thead th { background: var(--forest); color: white; font-size: .94rem; font-weight: 700; }
+    tbody th { width: 25%; color: var(--rose); font-weight: 700; }
+    tbody tr:nth-child(even) { background: #f7f9f7; }
+    code { padding: 2px 5px; background: var(--green); color: var(--forest); border-radius: 4px; font: .9em ui-monospace, Consolas, monospace; }
+    .visual-scroll { max-width: 100%; margin: 24px 0 12px; overflow-x: auto; }
+    .diagram { display: block; width: 100%; min-width: 740px; max-width: 1000px; height: auto; margin: 0 auto; }
+    .diagram text { font: 14px system-ui, -apple-system, "Segoe UI", sans-serif; fill: var(--ink); }
+    .diagram .small { font-size: 11px; fill: var(--muted); }
+    .diagram .pink { fill: var(--pink); stroke: var(--rose); stroke-width: 1.5; }
+    .diagram .green { fill: var(--green); stroke: var(--forest); stroke-width: 1.5; }
+    .diagram .wire { fill: none; stroke: var(--forest); stroke-width: 1.8; }
+    .diagram .control { fill: none; stroke: var(--rose); stroke-width: 1.8; stroke-dasharray: 6 4; }
+    .diagram .tip { fill: var(--forest); }
+    .diagram .control-tip { fill: var(--rose); }
+    .diagram-caption { margin: 12px 0 28px; text-align: center; color: var(--muted); font-size: .9rem; }
+    .bits { display: grid; grid-template-columns: 52px 4fr 1.5fr 1.6fr; min-width: 640px; text-align: center; }
+    .bits div { padding: 18px 12px; border-right: 1px solid #ffffff50; background: var(--forest); color: white; font-size: 1.05rem; }
+    .bits div:nth-child(even) { background: var(--rose); }
+    .bits div:first-child { border-radius: 8px 0 0 8px; }
+    .bits div:last-child { border-radius: 0 8px 8px 0; border-right: 0; }
+    .bits small { display: block; margin-top: 8px; font-size: .88rem; line-height: 1.5; }
+    .two-col { display: grid; grid-template-columns: 1.05fr 1fr; gap: 32px; }
+    .two-col > div { min-width: 0; }
+    .two-col h3:first-child { margin-top: 0; }
+    pre { margin: 18px 0; padding: 22px; overflow: auto; border-radius: 8px; background: #193e2d; color: #f5faf6; font: .9rem/1.9 ui-monospace, Consolas, monospace; }
+    pre code { padding: 0; background: none; color: inherit; font: inherit; }
+    .faq-grid { display: block; }
+    details { padding: 20px 0; border-bottom: 1px solid var(--line); }
+    details:first-child { padding-top: 0; }
+    summary { cursor: pointer; color: var(--forest); font-size: 1.05rem; font-weight: 700; }
+    details p { margin: 14px 0 0; color: var(--muted); font-size: 1rem; }
+    .closing { margin-top: 28px; padding: 22px; border-left: 4px solid var(--rose); border-radius: 0 8px 8px 0; background: var(--pink); font-size: 1rem; }
+    .map-root { position: relative; max-width: 720px; margin: auto; padding: 22px; border-radius: 10px; background: var(--rose); color: white; text-align: center; }
+    .map-root .eyebrow, .map-root h2 { color: white; }
+    .map-root h2 { margin-bottom: 10px; font-size: 1.5rem; }
+    .map-root p { margin: 6px 0; font-size: .98rem; }
+    .map-root::after { content: ""; position: absolute; top: 100%; left: 50%; height: 28px; border-left: 2px solid var(--green-line); }
+    .branches { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 28px 0 0; padding: 0; list-style: none; }
+    .branches::before { content: ""; position: absolute; top: 0; left: calc((100% - 48px)/6); right: calc((100% - 48px)/6); border-top: 2px solid var(--green-line); }
+    .branch { position: relative; min-width: 0; padding-top: 22px; --tone: var(--pink); --border: var(--pink-line); --accent: var(--rose); }
+    .branch:nth-child(even) { --tone: var(--green); --border: var(--green-line); --accent: var(--forest); }
+    .branch::before { content: ""; position: absolute; top: 0; left: 50%; height: 22px; border-left: 2px solid var(--green-line); }
+    .branch > h3 { margin: 0; padding: 18px; border-radius: 9px; background: var(--accent); color: white; font-size: 1.12rem; }
+    .branch > h3 span { display: block; margin-top: 7px; color: white; font-size: .88rem; font-weight: 500; }
+    .leaves { list-style: none; padding: 16px 0 0 12px; margin: 0 0 0 8px; border-left: 2px solid var(--border); }
+    .leaf { position: relative; margin-bottom: 16px; }
+    .leaf::before { content: ""; position: absolute; top: 22px; left: -14px; width: 14px; border-top: 2px solid var(--border); }
+    article { position: relative; padding: 18px; border: 1px solid var(--border); border-radius: 9px; background: var(--white); overflow-wrap: anywhere; }
+    article h4 { margin: 0 0 12px; color: var(--accent); font-size: 1.02rem; }
+    article p { margin: 8px 0; font-size: .96rem; }
+    .references { padding: 8px 4px; color: var(--muted); font-size: .88rem; }
+    .references a { display: inline-block; margin: 6px 18px 6px 0; }
+    @media (max-width: 960px) {
+      .two-col { grid-template-columns: 1fr; gap: 28px; }
+      .branches { grid-template-columns: 1fr; gap: 24px; }
+      .branches::before, .branch::before, .map-root::after { display: none; }
+      .branch { padding-top: 0; }
+      .leaves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 16px 0 0; margin: 0; border: 0; }
+      .leaf { margin-bottom: 0; }
+      .leaf::before { display: none; }
+      article { height: 100%; }
+    }
+    @media (max-width: 600px) {
+      :root { --space: 20px; }
+      body { font-size: 16px; }
+      main { padding: 20px 12px 32px; }
+      h2 { font-size: 1.4rem; }
+      .panel, #memory-map { margin: 20px 0; }
+      .jump { gap: 10px 18px; margin: 20px 0; }
+      .chips { gap: 6px 14px; }
+      .chip + .chip::before { display: none; }
+      .quote, .note, .closing { padding: 16px; }
+      .leaves { grid-template-columns: 1fr; }
+      pre { padding: 16px; }
+      th, td { padding: 14px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    @media print {
+      body { background: white; font-size: 10pt; }
+      main { max-width: none; padding: 0; }
+      .jump { display: none; }
+      .hero, .panel, #memory-map { padding: 16px; margin: 16px 0; }
+      h1 { font-size: 24pt; }
+      h2 { font-size: 17pt; }
+      h3, h4 { break-after: avoid; }
+      .table-wrap, .visual-scroll { overflow: visible; }
+      table { min-width: 0; font-size: 9pt; }
+      th, td { padding: 10px; }
+      thead th { background: var(--green); color: var(--forest); }
+      .diagram, .bits { min-width: 0; width: 100%; }
+      .bits div { padding: 10px; font-size: 10pt; }
+      .bits small { font-size: 8pt; }
+      .map-root { background: var(--pink); color: var(--ink); }
+      .map-root .eyebrow, .map-root h2 { color: var(--rose); }
+      .branches { grid-template-columns: 1fr; }
+      .branches::before, .branch::before, .map-root::after { display: none; }
+      .branch { padding-top: 0; }
+      .branch > h3 { background: var(--tone); color: var(--accent); }
+      .branch > h3 span { color: var(--accent); }
+      .leaves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; border: 0; margin: 0; padding: 12px 0 0; }
+      .leaf::before { display: none; }
+      .leaf, .bits, .diagram, details, tr { break-inside: avoid; }
+      .two-col { grid-template-columns: 1fr; }
+      pre { font-size: 9pt; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <div class="eyebrow">System design / 3.5+ years / interview preparation</div>
+    <h1>Distributed unique ID generator</h1>
+    <p class="quote">"I'll clarify requirements, then propose a design, then stress it with failures and scale."</p>
+    <div class="chips"><span class="chip">45-minute framework</span><span class="chip">Visual memory map</span><span class="chip">Snowflake-style baseline</span><span class="chip">10 FAQs</span></div>
+    <p class="muted">Study the discussion notes and diagrams first; finish with FAQs and a compact recall map. Original explanations, not copied from or affiliated with Hello Interview. Numbers are illustrative assumptions.</p>
+  </header>
+  <nav class="jump" aria-label="Page sections"><a href="#requirements">1 / Requirements</a><a href="#design">2 / Design &amp; diagrams</a><a href="#generation">Happy path</a><a href="#stress">3 / Stress with failures</a><a href="#tradeoffs">Scale &amp; trade-offs</a><a href="#faq">FAQs</a><a href="#memory-map">Final recall map</a></nav>
+
+  <section class="panel intro" id="requirements" aria-labelledby="requirements-title">
+    <div class="eyebrow">Start here / 0-5 minutes</div>
+    <h2 id="requirements-title">Clarify what "unique" means</h2>
+    <p class="quote">"Do we need standard UUIDs or any unique identifier? Must IDs be 64-bit, time-sortable, or unpredictable? Are gaps acceptable? What throughput and failure guarantees do we need?"</p>
+    <h3 id="functional-title">Functional requirements</h3>
+    <div class="table-wrap"><table aria-labelledby="functional-title">
+      <thead><tr><th scope="col">Requirement</th><th scope="col">Expected behavior</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Generate an ID</th><td>Provide an API that returns one new ID per successful request.</td></tr>
+        <tr><th scope="row">Global uniqueness</th><td>Never repeat an ID across generators within the supported lifetime, under the stated ownership, clock, and recovery rules.</td></tr>
+        <tr><th scope="row">Compact representation</th><td>Use a 64-bit ID, returned as a decimal string to preserve precision in clients.</td></tr>
+        <tr><th scope="row">Approximate time ordering</th><td>IDs should generally sort by creation time; strict global ordering is not required.</td></tr>
+        <tr><th scope="row">Batch generation (optional)</th><td>Return a bounded number of unique IDs in one request if the interviewer includes batching in scope.</td></tr>
+      </tbody>
+    </table></div>
+    <h3 id="nonfunctional-title">Non-functional requirements</h3>
+    <div class="table-wrap"><table aria-labelledby="nonfunctional-title">
+      <thead><tr><th scope="col">Requirement</th><th scope="col">Design expectation</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">High throughput</th><td>Support an illustrative 1 million IDs/second globally; at 100 workers, average load is about 10,000 IDs/second each before headroom and skew.</td></tr>
+        <tr><th scope="row">Low latency</th><td>Keep normal generation local to the worker; agree on an end-to-end p99 latency target with the interviewer.</td></tr>
+        <tr><th scope="row">Horizontal scalability</th><td>Add independently identified workers within the worker-ID bit budget, without central coordination for every ID.</td></tr>
+        <tr><th scope="row">Availability</th><td>Continue through healthy generators when a worker fails; stop any generator whose ownership or time safety is uncertain.</td></tr>
+        <tr><th scope="row">Safe recovery</th><td>Handle restarts and clock rollback without reusing previously issued timestamp-worker-sequence combinations.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="muted"><strong>Out of scope:</strong> gapless numbering, strict global ordering, secret/unpredictable tokens, and storing all generated IDs. Gaps are acceptable.</p>
+    <p class="note"><strong>First decision:</strong> if 128-bit IDs are acceptable, a standard UUID implementation may already solve the problem. Choose Snowflake here because the assumed requirements call for compact 64-bit, roughly time-ordered IDs.</p>
+  </section>
+
+  <section class="panel" id="design" aria-labelledby="design-title">
+    <div class="eyebrow">Propose a design / 5-20 minutes</div>
+    <h2 id="design-title">Choose an approach, then draw it</h2>
+    <p class="quote">"Given compact 64-bit IDs and approximate time ordering, I'll use a Snowflake-style generator. First I'll show the architecture and normal request path; then I'll challenge its assumptions."</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th scope="col">Approach</th><th scope="col">When it fits</th><th scope="col">Main trade-off</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Database sequence</th><td>Coordinated numeric allocation; often enough at modest scale.</td><td>A remote allocation per ID adds latency and a central dependency. Ranges amortize that cost.</td></tr>
+        <tr><th scope="row">UUIDv4</th><td>Independent random IDs without worker allocation.</td><td>128 bits, probabilistic uniqueness, random index placement.</td></tr>
+        <tr><th scope="row">UUIDv7</th><td>Standard timestamp-prefixed IDs with useful index locality.</td><td>128 bits; not strict global ordering.</td></tr>
+        <tr><th scope="row">Snowflake-style</th><td>Our assumed compact, approximately ordered 64-bit IDs.</td><td>Exclusive worker identities and careful clock/recovery handling.</td></tr>
+      </tbody>
+    </table></div>
+    <h3 id="uuidv7-snowflake-title">UUIDv7 vs Snowflake: which should you choose?</h3>
+    <div class="table-wrap"><table aria-labelledby="uuidv7-snowflake-title">
+      <thead><tr><th scope="col">Consideration</th><th scope="col">UUIDv7</th><th scope="col">Snowflake-style ID</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Size and format</th><td>Standard 128-bit UUID: 16 bytes raw; typically 36 characters as text.</td><td>Commonly a custom 64-bit integer: 8 bytes raw; up to 19 decimal digits with the sign bit zero.</td></tr>
+        <tr><th scope="row">Layout</th><td>48-bit Unix timestamp in milliseconds, 6 version/variant bits, and 74 bits for randomness and optional monotonicity mechanisms.</td><td>Our layout: 1 zero sign bit + 41 timestamp bits + 10 worker bits + 12 sequence bits.</td></tr>
+        <tr><th scope="row">Uniqueness</th><td>Typically probabilistic, using random fields and implementation-specific counter rules. Requires a correct random source and generator.</td><td>Deterministic under exclusive worker ownership, serialized sequencing, and safe clock/restart rules. A repeated tuple causes a collision.</td></tr>
+        <tr><th scope="row">Coordination</th><td>Independent generators do not normally need centrally assigned worker identities.</td><td>Worker identities must be allocated safely. No central coordination is needed for each ID once ownership and recovery state are valid.</td></tr>
+        <tr><th scope="row">Ordering</th><td>Timestamp-prefixed and approximately time-ordered. Ordering within a millisecond depends on the implementation.</td><td>Approximately time-ordered; same-millisecond numeric order depends on worker and sequence fields.</td></tr>
+        <tr><th scope="row">Strict global order</th><td>Not guaranteed across independent generators, including causal or real-time ordering.</td><td>Not guaranteed across workers. Clock skew and worker bits can disagree with actual event order.</td></tr>
+        <tr><th scope="row">Clock and restart handling</th><td>Rollback can disrupt time ordering. Monotonicity and counter persistence behavior depend on the library; UUIDv7 does not eliminate clock concerns.</td><td>Rollback or unsafe restart can repeat a tuple. Must guard time, sequence state, ownership, and worker-ID reuse.</td></tr>
+        <tr><th scope="row">Capacity</th><td>No universal per-millisecond limit across implementations; depends on random/counter allocation and implementation behavior.</td><td>Our layout supports 1,024 worker identities and 4,096 IDs/ms/worker, with about 69.7 years from the custom epoch. These are encoding limits.</td></tr>
+        <tr><th scope="row">Database impact</th><td>Time locality can improve insertion behavior compared with random UUIDs, but keys and references occupy 16 bytes raw.</td><td>Smaller keys and references generally improve index density; real performance depends on the database and workload.</td></tr>
+        <tr><th scope="row">Predictability and security</th><td>Exposes generation time. Remaining unpredictability depends on how random/counter fields are generated; do not treat it as a secret token.</td><td>Predictable structure can expose time, worker identity, and sequencing. Not suitable as a secret token.</td></tr>
+        <tr><th scope="row">Best fit</th><td>Choose when 128 bits are acceptable and standardized, decentralized generation with time locality is valuable.</td><td>Choose when compact 64-bit IDs justify the extra ownership, clock, and recovery complexity.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note"><strong>Interview decision:</strong> "If 128 bits are acceptable, I'd consider UUIDv7 to avoid worker-ID coordination. If compact 64-bit IDs are a requirement, I'd choose Snowflake and explicitly defend its failure handling. Neither guarantees strict global ordering or replaces authorization."</p>
+    <h3>API and deployment choice</h3>
+    <p><code>POST /ids</code> returns <code>{"id":"..."}</code>. Bound batch size if batching is in scope. Define unavailable and timeout responses. A retry can generate a different unique ID; returning the same one needs a separate idempotency contract.</p>
+    <p><strong>Baseline: a service.</strong> Clients call a load-balanced generator pool. A worker allocator grants durable, exclusive identities at assignment/recovery, not on every ID request. An embedded library avoids a network call per ID but gives each application instance the same identity and recovery responsibilities.</p>
+    <h3>A stateless API over stateful generators</h3>
+    <div class="visual-scroll" role="region" aria-label="Architecture diagram, scroll horizontally on smaller screens" tabindex="0">
+    <svg class="diagram" viewBox="0 0 740 285" role="img" aria-labelledby="arch-title arch-desc">
+      <title id="arch-title">Distributed ID generation service</title>
+      <desc id="arch-desc">Clients send requests through a load balancer to generator A or B. Generators receive distinct worker identities from a durable allocator. Each generator uses local state and durable recovery metadata. Dashed lines are control-plane allocation, not per-ID calls.</desc>
+      <defs>
+        <marker id="request-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path class="tip" d="M 0 0 L 10 5 L 0 10 Z"/></marker>
+        <marker id="allocation-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path class="control-tip" d="M 0 0 L 10 5 L 0 10 Z"/></marker>
+      </defs>
+      <rect class="pink" x="15" y="115" width="100" height="48" rx="10"/><text x="65" y="144" text-anchor="middle">Clients</text>
+      <path class="wire" d="M 115 139 H 155" marker-end="url(#request-arrow)"/>
+      <rect class="green" x="160" y="115" width="125" height="48" rx="10"/><text x="222" y="144" text-anchor="middle">Load balancer</text>
+      <path class="wire" d="M 285 139 H 317 V 107 H 350" marker-end="url(#request-arrow)"/>
+      <path class="wire" d="M 317 139 V 198 H 350" marker-end="url(#request-arrow)"/>
+      <rect class="pink" x="355" y="81" width="170" height="53" rx="10"/><text x="440" y="103" text-anchor="middle">Generator A</text><text class="small" x="440" y="120" text-anchor="middle">worker = 17 | local state</text>
+      <rect class="green" x="355" y="171" width="170" height="53" rx="10"/><text x="440" y="193" text-anchor="middle">Generator B</text><text class="small" x="440" y="210" text-anchor="middle">worker = 18 | local state</text>
+      <rect class="green" x="570" y="8" width="155" height="50" rx="10"/><text x="647" y="29" text-anchor="middle">Worker allocator</text><text class="small" x="647" y="46" text-anchor="middle">durable exclusive grants</text>
+      <path class="control" d="M 570 33 H 440 V 76" marker-end="url(#allocation-arrow)"/>
+      <path class="control" d="M 647 58 V 153 H 440 V 166" marker-end="url(#allocation-arrow)"/>
+      <rect class="pink" x="570" y="177" width="155" height="54" rx="10"/><text x="647" y="199" text-anchor="middle">Recovery metadata</text><text class="small" x="647" y="216" text-anchor="middle">per-worker time ceilings</text>
+      <path class="wire" d="M 525 107 H 548 V 188 H 565" marker-end="url(#request-arrow)"/>
+      <path class="wire" d="M 525 208 H 565" marker-end="url(#request-arrow)"/>
+      <text class="small" x="440" y="262" text-anchor="middle">Solid: requests / durable reservations. Dashed: ownership control plane.</text>
+    </svg>
+    </div>
+    <p class="diagram-caption">The API does not store generated IDs. Generators retain local sequencing state and durable recovery metadata.</p>
+    <h3>Snowflake-style 64-bit layout</h3>
+    <div class="visual-scroll" role="region" aria-label="Bit layout, scroll horizontally on smaller screens" tabindex="0">
+    <div class="bits" role="img" aria-label="64 bits: one unused sign bit, 41 timestamp bits, 10 worker ID bits, and 12 sequence bits">
+      <div><strong>0</strong><small>1 sign bit</small></div><div><strong>Timestamp</strong><small>41 bits / milliseconds since custom epoch</small></div><div><strong>Worker</strong><small>10 bits</small></div><div><strong>Sequence</strong><small>12 bits</small></div>
+    </div>
+    </div>
+    <pre><code>ID = ((currentMillis - customEpoch) &lt;&lt; 22)
+   | (workerId &lt;&lt; 12)
+   | sequence</code></pre>
+    <div class="table-wrap"><table>
+      <thead><tr><th scope="col">Field</th><th scope="col">Capacity</th><th scope="col">Design implication</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">41-bit time</th><td>About 69.7 years</td><td>Choose a fixed epoch and plan migration before timestamp exhaustion. Do not silently change the epoch inside the same namespace.</td></tr>
+        <tr><th scope="row">10-bit worker</th><td>1,024 identities</td><td>Unique active identity assignments; plan capacity and safe reuse. This is a shared namespace across regions unless region bits are explicitly reserved.</td></tr>
+        <tr><th scope="row">12-bit sequence</th><td>4,096 IDs/ms/worker</td><td>About 4.096M IDs/s/worker is the encoding ceiling, not a measured service capacity.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note"><strong>Why numeric sorting helps:</strong> timestamp bits are most significant. But clock skew can reorder events across workers; within one millisecond, worker bits influence sort order. Do not claim strict global creation order or gapless allocation.</p>
+  </section>
+
+  <section class="panel" id="generation" aria-labelledby="generation-title">
+    <div class="eyebrow">Propose a design / normal request path</div>
+    <h2 id="generation-title">Explain the happy path before breaking it</h2>
+    <p>First assume valid worker ownership, a clock that has not moved backward, and an available sequence number. The failure discussion below adds the guards needed for real operation.</p>
+    <div class="two-col">
+      <div>
+        <h3>Happy-path sketch</h3>
+        <pre><code>under a per-generator lock:
+  now = read wall-clock milliseconds
+  if now == lastTimestamp:
+    sequence += 1
+  else:
+    sequence = 0
+  lastTimestamp = now
+  return pack(now - epoch, workerId, sequence)</code></pre>
+        <p class="muted">Not production-ready pseudocode: this deliberately omits failure guards. Before emission, a complete implementation must verify ownership, clock and field bounds, sequence capacity, and durable recovery coverage.</p>
+      </div>
+      <div>
+        <h3>Proof sketch</h3>
+        <p>Different timestamps differ in the high bits. Within a timestamp, different worker IDs differ in the middle bits. Within one timestamp and worker, the serialized sequence is distinct.</p>
+        <p>Therefore collisions require a repeated tuple: <strong>(timestamp, worker ID, sequence)</strong>. Clock rollback, unsafe ownership reuse, and restart-state loss are precisely the ways that repetition can occur.</p>
+        <h3>A concrete example</h3>
+        <p>At timestamp T, worker 17 emits sequence 0, then 1. Worker 18 may emit sequence 0 at the same time: its different worker bits keep the ID distinct.</p>
+        <p class="note"><strong>Transition to the next discussion:</strong> "This works under those assumptions. Now let's examine what could repeat a tuple or prevent us from serving requests."</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="stress" aria-labelledby="stress-title">
+    <div class="eyebrow">Stress with failures and scale / 20-45 minutes</div>
+    <h2 id="stress-title">Problem &gt; solution &gt; trade-off</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th scope="col">Interviewer challenge</th><th scope="col">How the design responds</th><th scope="col">Cost or limit</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Two threads request an ID together</th><td>Serialize timestamp/sequence updates with a lock or correct atomic protocol.</td><td>Contention limits one worker's actual throughput. Scale across distinct worker identities.</td></tr>
+        <tr><th scope="row">More than 4,096 IDs in one millisecond</th><td>Wait for a later millisecond, refresh time, recheck guards, then reset sequence.</td><td>Backpressure and extra latency. Time out if the clock does not advance; never wrap within one timestamp.</td></tr>
+        <tr><th scope="row">Clock moves backward</th><td>Pause briefly for a small rollback; reject generation and alert for a larger one. After waiting, refresh time and revalidate ownership and all bounds.</td><td>Reduced availability. NTP is not a monotonic-clock guarantee; a local monotonic timer alone is not a shared epoch timestamp.</td></tr>
+        <tr><th scope="row">Two workers claim the same identity</th><td>Use a durable, strongly consistent allocator with exclusive ownership. Baseline grants are not automatically expired and recycled; establish that the previous owner stopped before reuse.</td><td>Conservative replacement can delay recovery. Truncated hostname hashes are not safe allocation.</td></tr>
+        <tr><th scope="row">Worker crashes and restarts</th><td>Route traffic to other identities. Durably reserve a timestamp window's upper bound before issuing in that window. Reusing the identity after restart must wait until wall time exceeds its recorded bound.</td><td>Occasional durable reservation writes and restart delays. Lost recovery metadata requires quarantine unless safe reuse is established.</td></tr>
+        <tr><th scope="row">Allocator cannot be reached</th><td>Healthy holders of non-expiring exclusive grants and safe recovery state may continue; new assignments and reassignments wait.</td><td>Scale-out is limited during the outage. A lease-based alternative must prevent issuance after valid ownership expires; expiry alone does not stop a partitioned process.</td></tr>
+        <tr><th scope="row">Need more workers or multiple regions</th><td>Allocate distinct identities across the global namespace. Explicitly reserve region bits only if changing the layout is justified.</td><td>The 10-bit budget has 1,024 identities. More worker/region bits require fewer time or sequence bits, or a wider ID.</td></tr>
+        <tr><th scope="row">Timestamp reaches its limit</th><td>Reject out-of-range time and migrate the format or namespace before the approximately 69.7-year timestamp budget is exhausted.</td><td>Epoch changes and field wrapping cannot be silent: previously issued IDs must remain distinguishable.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note"><strong>Correctness before availability:</strong> stop any generator whose ownership or recovery state is uncertain. A fencing token helps only when issuance is actually gated by it or its allocation generation is encoded in the ID.</p>
+  </section>
+
+  <section class="panel" id="tradeoffs" aria-labelledby="tradeoffs-title">
+    <div class="eyebrow">Stress the design / capacity and operational follow-ups</div>
+    <h2 id="tradeoffs-title">Scale it, observe it, and state its limits</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th scope="col">Question</th><th scope="col">Your answer</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">How do we scale?</th><td>Add independently identified workers within the bit budget. Load-test actual capacity; avoid one network round trip per ID by embedding the generator where appropriate.</td></tr>
+        <tr><th scope="row">How do we detect problems?</th><td>Track generation p99, sequence exhaustion waits, clock rollback, allocation failures, identity conflicts, and recovery waits. Sample/validate outputs, but do not rely on an after-the-fact duplicate check for correctness.</td></tr>
+        <tr><th scope="row">What should we test?</th><td>Concurrent requests, frozen/backward clocks, restarts in the same millisecond, missing metadata, identity reuse, network partitions, sequence exhaustion, and epoch bounds.</td></tr>
+      </tbody>
+    </table></div>
+    <p><strong>Guarantee boundaries:</strong> IDs are approximately time-ordered, not gapless or strictly globally ordered. They are predictable: never use them as passwords, access tokens, or substitutes for authorization.</p>
+    <p class="closing"><strong>Interview closing:</strong> "I chose Snowflake-style IDs for compactness and approximate time ordering. The normal path is local generation. Uniqueness depends on exclusive worker identities, serialized sequence updates, and safe clock/restart handling. I would stop an unsafe generator rather than risk duplicates."</p>
+  </section>
+
+  <section class="panel" id="faq" aria-labelledby="faq-title">
+    <div class="eyebrow">Active recall / expand after answering aloud</div>
+    <h2 id="faq-title">10 interview FAQs</h2>
+    <div class="faq-grid">
+      <details><summary>1. Is a unique ID the same as a UUID?</summary><p>No. UUID is a standardized 128-bit identifier format. A unique ID can also be a database sequence, range-allocated number, or custom 64-bit Snowflake-style value.</p></details>
+      <details><summary>2. Can we guarantee that UUIDv4 never collides?</summary><p>No. Its collision probability is extraordinarily small with a correct random source, but not zero. Snowflake's deterministic uniqueness is also conditional: ownership, time, sequence, and recovery rules must hold.</p></details>
+      <details><summary>3. Why use a custom epoch?</summary><p>Store elapsed milliseconds rather than milliseconds since 1970, leaving the full timestamp bit budget available from the chosen start date. All workers must use the same fixed epoch in one namespace.</p></details>
+      <details><summary>4. Are Snowflake IDs globally ordered?</summary><p>Only approximately by time. Clocks differ, concurrent requests have no single natural total order, and same-millisecond IDs sort partly by worker ID. Strict global ordering requires additional coordination or a stronger ordering service.</p></details>
+      <details><summary>5. Why can't every server start with worker ID zero?</summary><p>Two servers can use the same timestamp and sequence, yielding identical IDs. Worker allocation must guarantee distinct active identities, not merely make duplicates unlikely through hashing.</p></details>
+      <details><summary>6. What happens after 4,096 IDs in one millisecond?</summary><p>Wait for a later millisecond, recheck guards, then reset the sequence. Do not wrap the sequence inside the same timestamp. Use backpressure or fail the request if waiting exceeds the latency budget.</p></details>
+      <details><summary>7. What if the machine restarts or loses its disk?</summary><p>Restarting the same worker identity needs trustworthy recovery state and a timestamp beyond the reserved high-water bound. If that state is lost, quarantine the identity or establish safe reuse; do not silently reset it.</p></details>
+      <details><summary>8. What if the allocator is unavailable?</summary><p>Under the non-expiring exclusive-grant baseline, healthy owners with safe state can continue. New allocation and reassignment wait. A lease-based alternative must stop issuance before its valid ownership expires.</p></details>
+      <details><summary>9. Should IDs be returned as JSON numbers?</summary><p>Prefer strings for 64-bit IDs when JavaScript clients are possible. JavaScript Number represents integers exactly only up to 2^53 - 1. Use a true 64-bit integer representation internally.</p></details>
+      <details><summary>10. Does retrying return the same ID?</summary><p>Not by default: a generator retry can return a fresh unique ID. If the operation needs the same result on retry, persist an idempotency-key-to-ID mapping with its own atomicity, retention, and durability rules.</p></details>
+    </div>
+  </section>
+  <section id="memory-map" aria-labelledby="map-title">
+    <div class="map-root"><div class="eyebrow">Final 60-second recall / 45-minute interview</div><h2 id="map-title">Clarify &gt; Propose &gt; Stress</h2><p>Never repeat (timestamp, worker ID, sequence).</p></div>
+    <ul class="branches" aria-label="Three stages of the interview">
+      <li class="branch" data-minutes="5">
+        <h3>01 / Clarify<span>0-5 min / agree on the guarantees</span></h3>
+        <ul class="leaves">
+          <li class="leaf"><article><h4>Requirements</h4><p>Unique? 64-bit? Sortable? Gaps allowed?<br>Throughput, latency, failure guarantees.</p></article></li>
+          <li class="leaf"><article><h4>Choose deliberately</h4><p>Sequence vs UUID vs Snowflake.<br>Our baseline: compact, approximately ordered IDs.</p></article></li>
+        </ul>
+      </li>
+      <li class="branch" data-minutes="15">
+        <h3>02 / Propose<span>5-20 min / architecture and happy path</span></h3>
+        <ul class="leaves">
+          <li class="leaf"><article><h4>Draw &amp; encode</h4><p>Client &gt; generator pool.<br>Exclusive workers; no central call per ID.<br><strong>1 sign + 41 time + 10 worker + 12 sequence.</strong></p></article></li>
+          <li class="leaf"><article><h4>Trace one request</h4><p>Lock &gt; time &gt; sequence &gt; pack &gt; return string.<br>Different tuple means different ID.</p></article></li>
+        </ul>
+      </li>
+      <li class="branch" data-minutes="25">
+        <h3>03 / Stress<span>20-45 min / problem, solution, trade-off</span></h3>
+        <ul class="leaves">
+          <li class="leaf"><article><h4>Break the assumptions</h4><p>Threads &gt; serialize.<br>Overflow / rollback &gt; wait or reject.<br>Ownership / restart &gt; exclusive grants + safe time bound.</p></article></li>
+          <li class="leaf"><article><h4>Scale &amp; close</h4><p>Add distinct workers; watch bit limits.<br>Monitor latency, clocks, and saturation.<br><strong>Preserve uniqueness; sacrifice availability if unsafe.</strong></p></article></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+  <footer class="references"><strong>Further reading:</strong> <a href="https://www.rfc-editor.org/rfc/rfc9562.html" target="_blank" rel="noopener noreferrer">RFC 9562: UUIDs</a><a href="https://github.com/twitter-archive/snowflake" target="_blank" rel="noopener noreferrer">Historical Snowflake project</a><p>Standalone HTML. No external fonts, libraries, analytics, or page-load network requests.</p></footer>
+</main>
+</body>
+</html>
